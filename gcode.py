@@ -17,7 +17,7 @@ class gcode:
 		]
 		self.tool_diameter = tool_diameter
 
-	def rectangular_pocket(self, x1, x2, y1, y2, depth, depth_per_pass, overlap = 0.5, finishing_pass = 0.1):
+	def rectangular_pocket(self, x1, x2, y1, y2, depth, depth_per_pass, overlap = 0, finishing_pass = 0):
 		assert x2 > x1
 		assert y2 > y1
 		assert (x2 - x1) >= self.tool_diameter
@@ -33,7 +33,7 @@ class gcode:
 		depth_cuts = math.floor(depth/depth_per_pass)
 		each_cut = depth/depth_cuts
 
-		increment_size = self.tool_diameter * overlap
+		increment_size = self.tool_diameter * (1 - overlap)
 
 		finish_size = self.tool_diameter * finishing_pass
 
@@ -86,23 +86,25 @@ class gcode:
 
 				current_increment_size += increment_size
 
-			# Cut around once
-			self.cut(x = bottom_left_x, y = bottom_left_y)
-			self.cut(x = top_left_x, y = top_left_y)
-			self.cut(x = top_right_x, y = top_right_y)
-			self.cut(x = bottom_right_x, y = bottom_right_y)
-			self.cut(x = bottom_left_x, y = bottom_left_y)
+			# Cut around last
+			if finish_size != 0:
+				self.cut(x = bottom_left_x, y = bottom_left_y)
+				self.cut(x = top_left_x, y = top_left_y)
+				self.cut(x = top_right_x, y = top_right_y)
+				self.cut(x = bottom_right_x, y = bottom_right_y)
+				self.cut(x = bottom_left_x, y = bottom_left_y)
 
 		self.safe()
 
-	def rectangular_profile(self, x1, x2, y1, y2, depth, depth_per_pass, finishing_pass = 0.1):
+	def rectangular_profile(self, x1, x2, y1, y2, depth, depth_per_pass, finishing_pass = 0, fillet = 0):
 		assert x2 > x1
 		assert y2 > y1
 		assert (x2 - x1) >= self.tool_diameter
 		assert (y2 - y1) >= self.tool_diameter
 		assert finishing_pass >= 0 and finishing_pass <= 1
+		assert fillet >= 0 and fillet <= min(x2 - x1, y2 - y1)
 
-		self.comment("Cutting rectangular pocket")
+		self.comment("Cutting rectangular profile")
 
 		center_x = (x2 + x1) / 2
 		center_y = (y2 + y1) / 2
@@ -128,7 +130,7 @@ class gcode:
 		while d > depth:
 
 			self.safe()
-			self.rapid(x = bottom_left_x, y = bottom_left_y)
+			self.rapid(x = bottom_left_x + finish_size, y = bottom_left_y + finish_size)
 			self.rapid(z = 1)
 
 			d -= each_cut
@@ -136,21 +138,22 @@ class gcode:
 			# Cut the to the depth
 			self.cut(z = str(d)[:5], comment = "Cutting to new depth")
 
-			# Cut around once
-			self.cut(x = bottom_left_x + finish_size, y = bottom_left_y + finish_size)
-			self.cut(x = top_left_x + finish_size, y = top_left_y - finish_size)
-			self.cut(x = top_right_x - finish_size, y = top_right_y - finish_size)
-			self.cut(x = bottom_right_x - finish_size, y = bottom_right_y + finish_size)
-			self.cut(x = bottom_left_x - finish_size, y = bottom_left_y + finish_size)
+			if finish_size != 0:
+				# Cut around once
+				self.cut_rectangle_from_bottom_left(bottom_left_x + finish_size, bottom_right_x - finish_size,
+					bottom_left_y + finish_size, top_left_y - finish_size)
 
 			# Cut around last
 			self.cut(x = bottom_left_x, y = bottom_left_y)
-			self.cut(x = top_left_x, y = top_left_y)
-			self.cut(x = top_right_x, y = top_right_y)
-			self.cut(x = bottom_right_x, y = bottom_right_y)
-			self.cut(x = bottom_left_x, y = bottom_left_y)
+			self.cut_rectangle_from_bottom_left(bottom_left_x, bottom_right_x, bottom_left_y, top_left_y)
 
 		self.safe()
+
+	def cut_rectangle_from_bottom_left(self, x1, x2, y1, y2):
+		self.cut(y = y2)
+		self.cut(x = x2)
+		self.cut(y = y1)
+		self.cut(x = x1)
 				
 	def comment(self, comment):
 		self.code.append("( " + comment + " )")
