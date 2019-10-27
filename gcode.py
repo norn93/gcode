@@ -189,10 +189,12 @@ class gcode:
 
 		self.comment("Making " + pretty_number(depth_cuts) + " depth cuts at " + pretty_number(each_depth_cut) + "mm per cut")
 
+		cut_radius = r - self.tool_diameter / 2
+
 		d = 0
 		while d > depth:
 			self.safe()
-			self.rapid(x = cx, y = cy - r)
+			self.rapid(x = cx, y = cy - cut_radius)
 			self.rapid(z = d + relative_start_z)
 
 			d -= each_depth_cut
@@ -200,10 +202,10 @@ class gcode:
 			# Cut the to the depth
 			self.cut(z = str(d)[:5], comment = "Cutting to new depth")
 
-			self.cut_arc(cx - r, cy, r)
-			self.cut_arc(cx, cy + r, r)
-			self.cut_arc(cx + r, cy, r)
-			self.cut_arc(cx, cy - r, r)
+			self.cut_arc(cx - cut_radius, cy, cut_radius)
+			self.cut_arc(cx, cy + cut_radius, cut_radius)
+			self.cut_arc(cx + cut_radius, cy, cut_radius)
+			self.cut_arc(cx, cy - cut_radius, cut_radius)
 
 		self.safe()
 
@@ -228,8 +230,9 @@ class gcode:
 		increment_size = self.tool_diameter * (1 - overlap)
 		finish_size = self.tool_diameter * finishing_pass
 
-		side_cuts = int(math.ceil(r / 2 / increment_size))
-		each_side_cut = r / side_cuts
+		cut_radius = r - self.tool_diameter / 2
+		side_cuts = int(math.ceil(cut_radius / 2 / increment_size))
+		each_side_cut = cut_radius / side_cuts
 
 		self.comment("Making " + pretty_number(side_cuts) + " radius cuts at " + pretty_number(each_side_cut) + "mm per cut")
 
