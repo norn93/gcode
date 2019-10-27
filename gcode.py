@@ -76,7 +76,7 @@ class gcode:
 		self.comment("Making " + pretty_number(side_cuts) + " side cuts at " + pretty_number(each_side_cut) + "mm per cut")
 
 		if relative_start_z == "":
-			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
+			relative_start_z = min(self.safe_z, self.plunge_speed / 60 * 5)
 
 		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
 
@@ -148,12 +148,12 @@ class gcode:
 		self.comment("Making " + pretty_number(depth_cuts) + " depth cuts at " + pretty_number(each_depth_cut) + "mm per cut")
 
 		if relative_start_z == "":
-			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
+			relative_start_z = min(self.safe_z, self.plunge_speed / 60 * 5)
 
 		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
 
-		finish_size = self.tool_diameter * finishing_pass
 		inside = (2 * inside - 1)
+		finish_size = self.tool_diameter * finishing_pass * inside
 
 		absolute_left = x1 + self.tool_diameter / 2 * inside
 		absolute_down = y1 + self.tool_diameter / 2 * inside
@@ -201,14 +201,16 @@ class gcode:
 		self.comment("Making " + pretty_number(depth_cuts) + " depth cuts at " + pretty_number(each_depth_cut) + "mm per cut")
 
 		if relative_start_z == "":
-			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
+			relative_start_z = min(self.safe_z, self.plunge_speed / 60 * 5)
 
 		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
 
 		if inside:
-			cut_radius = r - self.tool_diameter / 2
+			cut_radius = r - self.tool_diameter / 2 - self.tool_diameter * finishing_pass
+			absolute_cut_radius = r - self.tool_diameter / 2 
 		else:
-			cut_radius = r + self.tool_diameter / 2
+			cut_radius = r + self.tool_diameter / 2 + self.tool_diameter * finishing_pass
+			absolute_cut_radius = r + self.tool_diameter / 2
 
 		d = 0
 		while d > depth:
@@ -221,10 +223,17 @@ class gcode:
 			# Cut the to the depth
 			self.cut(z = str(d)[:5], comment = "Cutting to new depth")
 
-			self.cut_arc(cx - cut_radius, cy, cut_radius)
-			self.cut_arc(cx, cy + cut_radius, cut_radius)
-			self.cut_arc(cx + cut_radius, cy, cut_radius)
-			self.cut_arc(cx, cy - cut_radius, cut_radius)
+			if finishing_pass != 0:
+
+				self.cut_arc(cx - cut_radius, cy, cut_radius)
+				self.cut_arc(cx, cy + cut_radius, cut_radius)
+				self.cut_arc(cx + cut_radius, cy, cut_radius)
+				self.cut_arc(cx, cy - cut_radius, cut_radius)
+
+			self.cut_arc(cx - absolute_cut_radius, cy, absolute_cut_radius)
+			self.cut_arc(cx, cy + absolute_cut_radius, absolute_cut_radius)
+			self.cut_arc(cx + absolute_cut_radius, cy, absolute_cut_radius)
+			self.cut_arc(cx, cy - absolute_cut_radius, absolute_cut_radius)
 
 		self.safe()
 
@@ -249,14 +258,18 @@ class gcode:
 		increment_size = self.tool_diameter * (1 - overlap)
 		finish_size = self.tool_diameter * finishing_pass
 
-		cut_radius = r - self.tool_diameter / 2
+		cut_radius = r - self.tool_diameter / 2 - self.tool_diameter * finishing_pass
+		absolute_cut_radius = r - self.tool_diameter / 2 
+
+		self.comment("Finish radius: " + pretty_number(absolute_cut_radius) + "mm")
+
 		side_cuts = int(math.ceil(cut_radius / 2 / increment_size))
 		each_side_cut = cut_radius / side_cuts
 
 		self.comment("Making " + pretty_number(side_cuts) + " radius cuts at " + pretty_number(each_side_cut) + "mm per cut")
 
 		if relative_start_z == "":
-			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
+			relative_start_z = min(self.safe_z, self.plunge_speed / 60 * 5)
 
 		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
 
@@ -286,6 +299,14 @@ class gcode:
 				self.cut_arc(cx, cy - s, s)
 
 				s += each_side_cut
+
+			# Finnally, if we are doing a finish
+			if finishing_pass != 0:
+				self.cut(y = cy - absolute_cut_radius)
+				self.cut_arc(cx - absolute_cut_radius, cy, absolute_cut_radius)
+				self.cut_arc(cx, cy + absolute_cut_radius, absolute_cut_radius)
+				self.cut_arc(cx + absolute_cut_radius, cy, absolute_cut_radius)
+				self.cut_arc(cx, cy - absolute_cut_radius, absolute_cut_radius)
 
 			self.safe()
 
@@ -327,11 +348,17 @@ class gcode:
 	def cut_circle_from_bottom(self, x, y, j):
 		pass
 
-	def drill(self, x, y, depth, start_z = 1):
+	def drill(self, x, y, depth, relative_start_z = ""):
 		self.comment("Drilling hole at (" + str(x) + ", " + str(y) + ")")
+
+		if relative_start_z == "":
+			relative_start_z = min(self.safe_z, self.plunge_speed / 60 * 5)
+
+		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
+
 		self.safe()
 		self.rapid(x = x, y = y)
-		self.rapid(z = start_z)
+		self.rapid(z = relative_start_z)
 		self.cut(z = depth)
 		self.safe()
 
