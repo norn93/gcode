@@ -36,14 +36,14 @@ class gcode:
 		"N2 G0 G17 G40 G49 G80 G90; rapid, use XY plane, tool radius/length compensation off, cancel canned cycles, absolute positioning",
 		"N3 T1 M6; tool select, automatic tool changes",
 		"N4 G0 G90 G54 X0.0 Y0.0 Z" + str(float(self.safe_z)) + " A0 S3000 M3 F" + str(self.rapid_speed) + "; Fixed cycle (roughing), use work coordinate system, move to first coordinate, don't use A axis, spindle speed 3000 rpm, spindle on, set feedrate]",
-		"N5 X1 Y1; Activate all the axes",
+		"N5 X0.1 Y0.1; Activate all the axes",
 		"N6 X0 Y0; Back to origin"]
 
 		self.x = 0
 		self.y = 0
 		self.z = self.safe_z
 
-	def rectangular_pocket(self, x1, x2, y1, y2, depth, relative_start_z = 1, depth_per_pass = "", overlap = 0.6, finishing_pass = 0.0):
+	def rectangular_pocket(self, x1, x2, y1, y2, depth, relative_start_z = "", depth_per_pass = "", overlap = 0.6, finishing_pass = 0.0):
 		assert x2 > x1
 		assert y2 > y1
 		assert (x2 - x1) >= self.tool_diameter
@@ -74,6 +74,11 @@ class gcode:
 		each_side_cut = min(width, height) / 2 / side_cuts
 
 		self.comment("Making " + pretty_number(side_cuts) + " side cuts at " + pretty_number(each_side_cut) + "mm per cut")
+
+		if relative_start_z == "":
+			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
+
+		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
 
 		# Get the absolute max limits
 		absolute_left = x1 + self.tool_diameter / 2
@@ -122,7 +127,7 @@ class gcode:
 
 		self.safe()
 
-	def rectangular_profile(self, x1, x2, y1, y2, depth, relative_start_z = 1, depth_per_pass = "", finishing_pass = 0):
+	def rectangular_profile(self, x1, x2, y1, y2, depth, relative_start_z = "", depth_per_pass = "", finishing_pass = 0, inside = True):
 
 		assert x2 > x1
 		assert y2 > y1
@@ -142,12 +147,18 @@ class gcode:
 
 		self.comment("Making " + pretty_number(depth_cuts) + " depth cuts at " + pretty_number(each_depth_cut) + "mm per cut")
 
-		finish_size = self.tool_diameter * finishing_pass
+		if relative_start_z == "":
+			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
 
-		absolute_left = x1 + self.tool_diameter / 2
-		absolute_down = y1 + self.tool_diameter / 2
-		absolute_right = x2 - self.tool_diameter / 2
-		absolute_up = y2 - self.tool_diameter / 2
+		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
+
+		finish_size = self.tool_diameter * finishing_pass
+		inside = (2 * inside - 1)
+
+		absolute_left = x1 + self.tool_diameter / 2 * inside
+		absolute_down = y1 + self.tool_diameter / 2 * inside
+		absolute_right = x2 - self.tool_diameter / 2 * inside
+		absolute_up = y2 - self.tool_diameter / 2 * inside
 
 		d = 0
 		while d > depth:
@@ -172,7 +183,7 @@ class gcode:
 
 		self.safe()
 
-	def circular_profile(self, cx, cy, r, depth, relative_start_z = 1, depth_per_pass = "", finishing_pass = 0, inside = True):
+	def circular_profile(self, cx, cy, r, depth, relative_start_z = "", depth_per_pass = "", finishing_pass = 0, inside = True):
 
 		assert r > self.tool_diameter / 2
 		assert finishing_pass >= 0 and finishing_pass <= 1
@@ -188,6 +199,11 @@ class gcode:
 		each_depth_cut = -depth/depth_cuts
 
 		self.comment("Making " + pretty_number(depth_cuts) + " depth cuts at " + pretty_number(each_depth_cut) + "mm per cut")
+
+		if relative_start_z == "":
+			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
+
+		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
 
 		if inside:
 			cut_radius = r - self.tool_diameter / 2
@@ -212,7 +228,7 @@ class gcode:
 
 		self.safe()
 
-	def circular_pocket(self, cx, cy, r, depth, relative_start_z = 1, depth_per_pass = "", overlap = 0.6, finishing_pass = 0):
+	def circular_pocket(self, cx, cy, r, depth, relative_start_z = "", depth_per_pass = "", overlap = 0.6, finishing_pass = 0):
 
 		assert r > self.tool_diameter / 2
 		assert overlap >= 0 and overlap <= 1
@@ -238,6 +254,11 @@ class gcode:
 		each_side_cut = cut_radius / side_cuts
 
 		self.comment("Making " + pretty_number(side_cuts) + " radius cuts at " + pretty_number(each_side_cut) + "mm per cut")
+
+		if relative_start_z == "":
+			relative_start_z = min(self.safe_z, self.plunge_speed / 5)
+
+		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
 
 		d = 0
 		for depth_cut in range(depth_cuts):
