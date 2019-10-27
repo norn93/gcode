@@ -172,7 +172,7 @@ class gcode:
 
 		self.safe()
 
-	def circular_profile(self, cx, cy, r, depth, relative_start_z = 1, depth_per_pass = "", finishing_pass = 0):
+	def circular_profile(self, cx, cy, r, depth, relative_start_z = 1, depth_per_pass = "", finishing_pass = 0, inside = True):
 
 		assert r > self.tool_diameter / 2
 		assert finishing_pass >= 0 and finishing_pass <= 1
@@ -189,7 +189,10 @@ class gcode:
 
 		self.comment("Making " + pretty_number(depth_cuts) + " depth cuts at " + pretty_number(each_depth_cut) + "mm per cut")
 
-		cut_radius = r - self.tool_diameter / 2
+		if inside:
+			cut_radius = r - self.tool_diameter / 2
+		else:
+			cut_radius = r + self.tool_diameter / 2
 
 		d = 0
 		while d > depth:
