@@ -1,0 +1,31 @@
+from gcode import gcode
+
+g = gcode(material = "ALUMINUIM")
+g.drill(0, 0, -3.5)
+g.drill(10.5, 4, -3.5)
+g.drill(10.5, 66, -3.5)
+g.drill(0, 70, -3.5)
+g.drill(100, 70, -3.5)
+g.drill(89.5, 66, -3.5)
+g.drill(89.5, 4, -3.5)
+g.drill(100, 0, -3.5)
+g.end()
+g.save("gcode/1_heatsink_drill.gcode")
+
+g = gcode(material = "ALUMINUIM")
+g.drill(61.045, 67.745, -2)
+g.drill(71.944, 67.745, -2)
+g.end()
+g.save("gcode/3_heatsink_peck_pockets.gcode")
+
+g = gcode(material = "ALUMINUIM")
+g.slot(9.15, 9.15, 18.5, 57.5, depth = -2, relative_start_z = 0.1)
+g.slot(19, 23.7, 56.45, 56.45, depth = -2, relative_start_z = 0.1)
+g.slot(43.55, 43.55, 31.5, 54.5, depth = -2, relative_start_z = 0.1)
+g.save("gcode/4_heatsink_slots.gcode")
+
+g = gcode(material = "ALUMINUIM")
+g.rectangular_pocket(48.5, 59.5, 53.5, 71, depth = -2, relative_start_z = 0.1)
+g.rectangular_pocket(73.5, 84.5, 53.5, 71, depth = -2, relative_start_z = 0.1)
+g.rectangular_pocket(13.5, 23.5, -1, 7, depth = -0.5)
+g.save("gcode/56_heatsink_capacitors_usb.gcode")

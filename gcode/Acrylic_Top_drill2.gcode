@@ -9,31 +9,19 @@ N3 T212 M6; tool select, automatic tool changes
 N4 G0 G90 G54 X0.0 Y0.0 Z10.0 A0 S3000 M3 F600; Fixed cycle (roughing), use work coordinate system, move to first coordinate, don't use A axis, spindle speed 3000 rpm, spindle on, set feedrate]
 N5 X1 Y1; Activate all the axes
 N6 X0 Y0; Back to origin
-( Drilling hole at (0, 0) )
+( Drilling hole at (0, 69) )
 N7 Z10.0 F600.0
-N8 X0.0 Y0.0 
+N8 X0.0 Y69.0 
 N9 Z1.0 
 N10 Z-4.0 F50.0
 N11 Z10.0 F600.0
-( Drilling hole at (0, 70) )
+( Drilling hole at (100, 69) )
 N12 Z10.0 F600.0
-N13 X0.0 Y70.0 F600.0
+N13 X100.0 Y69.0 F600.0
 N14 Z1.0 
 N15 Z-4.0 F50.0
 N16 Z10.0 F600.0
-( Drilling hole at (100, 70) )
-N17 Z10.0 F600.0
-N18 X100.0 Y70.0 F600.0
-N19 Z1.0 
-N20 Z-4.0 F50.0
-N21 Z10.0 F600.0
-( Drilling hole at (100, 0) )
-N22 Z10.0 F600.0
-N23 X100.0 Y0.0 F600.0
-N24 Z1.0 
-N25 Z-4.0 F50.0
-N26 Z10.0 F600.0
 ( Done )
-N27 M5; Turn off spindle
-N28 M30; End of program
+N17 M5; Turn off spindle
+N18 M30; End of program
 %
