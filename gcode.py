@@ -161,7 +161,8 @@ class gcode:
 		absolute_up = y2 - self.tool_diameter / 2 * inside
 
 		d = 0
-		while d > depth:
+		#while d >= depth:
+		for depth_cut in range(depth_cuts):
 
 			self.safe()
 			self.rapid(x = absolute_left + finish_size, y = absolute_down + finish_size)
@@ -213,7 +214,8 @@ class gcode:
 			absolute_cut_radius = r + self.tool_diameter / 2
 
 		d = 0
-		while d > depth:
+		#while d >= depth:
+		for depth_cut in range(depth_cuts):
 			self.safe()
 			self.rapid(x = cx, y = cy - cut_radius)
 			self.rapid(z = d + relative_start_z)
@@ -310,7 +312,7 @@ class gcode:
 
 			self.safe()
 
-	def slot(self, x1, x2, y1, y2, depth, relative_start_z = 1):
+	def slot(self, x1, x2, y1, y2, depth, relative_start_z = ""):
 
 		depth_per_pass = self.depth_per_pass
 
@@ -323,8 +325,14 @@ class gcode:
 
 		self.comment("Making " + pretty_number(depth_cuts) + " depth cuts at " + pretty_number(each_depth_cut) + "mm per cut")
 
+		if relative_start_z == "":
+			relative_start_z = min(self.safe_z, self.plunge_speed / 60 * 5)
+
+		self.comment("Setting relative safe Z as " + pretty_number(relative_start_z))
+
 		d = 0
-		while d > depth:
+		#while d >= depth:
+		for depth_cut in range(depth_cuts):
 			self.safe()
 			self.rapid(x = x1, y = y1)
 			self.rapid(z = d + relative_start_z)
