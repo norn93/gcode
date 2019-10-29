@@ -43,6 +43,8 @@ class gcode:
 		self.y = 0
 		self.z = self.safe_z
 
+		self.ended = False
+
 	def rectangular_pocket(self, x1, x2, y1, y2, depth, relative_start_z = "", depth_per_pass = "", overlap = 0.6, finishing_pass = 0.0):
 		assert x2 > x1
 		assert y2 > y1
@@ -380,6 +382,7 @@ class gcode:
 		self.write("M5", comment = "Turn off spindle")
 		self.write("M30", comment = "End of program")
 		self.code.append("%")
+		self.ended = True
 
 	def cut_arc(self, x = "", y = "", r = "", comment = ""):
 		assert x != "" or y != ""
@@ -444,6 +447,8 @@ class gcode:
 		self.code.append(line)
 
 	def save(self, filename = "output.gcode"):
+		if not self.ended:
+			self.end()
 		with open(filename, "w+") as f:
 			f.write("\n".join(self.code))
 		print("Written to:", filename)
