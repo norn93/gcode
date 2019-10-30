@@ -1,4 +1,5 @@
 import math
+import datetime
 
 MATERIALS = {
 	"ALUMINUIM": {"cut_speed": 50, "plunge_speed": 2, "depth_per_pass": 0.3},
@@ -29,6 +30,7 @@ class gcode:
 
 		self.code = ["%",
 		"O0000(" + name + ")",
+		"(TIME: " + str(datetime.datetime.now()) + ")",
 		"(TOOL DIAMETER: " + str(float(self.tool_diameter)) + ")",
 		"(CUT SPEED: " + str(float(self.cut_speed)) + ")",
 		"(PLUNGE SPEED: " + str(float(self.plunge_speed)) + ")",

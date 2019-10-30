@@ -10,7 +10,6 @@ g.drill(100, 70, -3.5)
 g.drill(89.5, 66, -3.5)
 g.drill(89.5, 4, -3.5)
 g.drill(100, 0, -3.5)
-g.end()
 g.save("gcode/1_heatsink_drill.gcode")
 
 # Pause and reset clamping
@@ -35,7 +34,6 @@ g.rectangular_pocket(48.5, 59.5, 53.5, 71, depth = -2, overlap = 0.4)
 g.rectangular_pocket(73.5, 84.5, 53.5, 71, depth = -2, overlap = 0.4)
 g.comment("# 6 - USB cutout")
 g.rectangular_pocket(13.5, 23.5, -1, 7, depth = -0.5)
-g.end()
 g.save("gcode/2_heatsink_milling.gcode")
 
 # Now cut the outside profile
