@@ -1,4 +1,4 @@
-# gcode
+# pygcode
 Simple Python [G-code](https://en.wikipedia.org/wiki/G-code) generator
 
 ## Example usage
